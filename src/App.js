@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import './App.css';
 
+
 export default function AdminPanel() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
@@ -18,6 +19,38 @@ export default function AdminPanel() {
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState('User');
   const [viewUser, setViewUser] = useState(null);
+
+  // New logs data
+  const [loginHistory] = useState([
+    { user: 'alice', time: '2025-07-10 09:00', success: true },
+    { user: 'bob', time: '2025-07-10 10:15', success: false }
+  ]);
+  const [ipLogs] = useState([
+    { user: 'alice', ip: '192.168.1.1', time: '2025-07-10 09:00' },
+    { user: 'carol', ip: '192.168.1.2', time: '2025-07-10 09:30' }
+  ]);
+  const [failedLogins] = useState([
+    { user: 'bob', time: '2025-07-10 10:15', reason: 'Wrong password' }
+  ]);
+  const [activityLogs] = useState([
+    { user: 'alice', page: 'dashboard', action: 'Viewed', time: '2025-07-10 09:01' },
+    { user: 'carol', page: 'users', action: 'Added user', time: '2025-07-10 09:32' }
+  ]);
+  const [newTask, setNewTask] = useState({ title: "", assignedTo: "", due: "", status: "Pending", priority: "Low" });
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const addTask = () => {
+    if (newTask.title.trim()) {
+      setTasks([...tasks, newTask]);
+      setNewTask({ title: "", assignedTo: "", due: "", status: "Pending", priority: "Low" });
+    }
+  };
+  const [tasks, setTasks] = useState([]);
+
+
+  const filteredTasks = priorityFilter
+    ? tasks.filter(task => task.priority === priorityFilter)
+    : tasks;
+
 
   const dailyChartRef = useRef(null);
   const roleChartRef = useRef(null);
@@ -186,34 +219,14 @@ export default function AdminPanel() {
           </div>
 
           <div className="flex-grow-1 overflow-auto">
-          <nav className="navbar navbar-light bg-white border-bottom px-4 py-2 d-flex justify-content-between align-items-center">
-  <input
-    type="text"
-    placeholder="Search..."
-    className="form-control form-control-sm"
-    style={{ maxWidth: 200 }}
-  />
-
-  <img
-    src="https://tse2.mm.bing.net/th/id/OIP.jOcdCtxN1e5AOG_-AGHNcQAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
-    alt="center logo"
-    className="mx-auto"
-    style={{ height: '100px', width: '100px', objectFit: 'cover', borderRadius: '80%' }}
-  />
-
-  <div className="d-flex align-items-center gap-2">
-    <span className="text-sm text-muted">
-      {username} ({userRole})
-    </span>
-    <img
-      src="https://i.pravatar.cc/100"
-      alt="avatar"
-      className="avatar"
-      style={{ height: '40px', width: '40px', borderRadius: '50%' }}
-    />
-  </div>
-</nav>
-
+            <nav className="navbar navbar-light bg-white border-bottom px-4 py-2 d-flex justify-content-between align-items-center">
+              <input type="text" placeholder="Search..." className="form-control form-control-sm" style={{ maxWidth: 200 }} />
+              <img src="https://tse2.mm.bing.net/th/id/OIP.jOcdCtxN1e5AOG_-AGHNcQAAAA" alt="center logo" className="mx-auto" style={{ height: '100px', width: '100px', objectFit: 'cover', borderRadius: '80%' }} />
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-sm text-muted">{username} ({userRole})</span>
+                <img src="https://i.pravatar.cc/100" alt="avatar" className="avatar" style={{ height: '40px', width: '40px', borderRadius: '50%' }} />
+              </div>
+            </nav>
 
             <div className="p-4">
               {activePage === 'dashboard' ? (
@@ -240,8 +253,7 @@ export default function AdminPanel() {
                 <>
                   <h2 className="text-xl font-bold mb-4">👥 Users</h2>
                   <div className="mb-3 d-flex">
-                    <input type="text" className="form-control me-2" placeholder="New username"
-                      value={newUserName} onChange={e => setNewUserName(e.target.value)} />
+                    <input type="text" className="form-control me-2" placeholder="New username" value={newUserName} onChange={e => setNewUserName(e.target.value)} />
                     <select className="form-select me-2" value={newUserRole} onChange={e => setNewUserRole(e.target.value)}>
                       <option value="User">User</option>
                       <option value="Manager">Manager</option>
@@ -285,7 +297,7 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     </div>
-                  )}
+                )}
                 </>
               ) : activePage === 'reports' ? (
                 <>
@@ -296,13 +308,135 @@ export default function AdminPanel() {
                     <div className="col-md-4"><div className="card glass p-3"><h6>Pie Chart - Inquiry Types</h6><canvas ref={pieChartRef}></canvas></div></div>
                   </div>
                 </>
-              ) : (
-                <p className="text-muted">Page under construction: {activePage}</p>
-              )}
-            </div>
+              ) : activePage === 'logs' ? (
+                <>
+                  <h2 className="text-xl font-bold mb-4">📜 Logs</h2>
+                  <div className="mb-4">
+                    <h6>Login History</h6>
+                    <table className="table glass">
+                      <thead><tr><th>User</th><th>Time</th><th>Success</th></tr></thead>
+                      <tbody>
+                        {loginHistory.map((log, idx) => (
+                          <tr key={idx}>
+                            <td>{log.user}</td>
+                            <td>{log.time}</td>
+                            <td>{log.success ? '✅' : '❌'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mb-4">
+                    <h6>IP Address Log</h6>
+                    <table className="table glass">
+                      <thead><tr><th>User</th><th>IP</th><th>Time</th></tr></thead>
+                      <tbody>
+                        {ipLogs.map((log, idx) => (
+                          <tr key={idx}>
+                            <td>{log.user}</td>
+                            <td>{log.ip}</td>
+                            <td>{log.time}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mb-4">
+                    <h6>Failed Login Attempts</h6>
+                    <table className="table glass">
+                      <thead><tr><th>User</th><th>Time</th><th>Reason</th></tr></thead>
+                      <tbody>
+                        {failedLogins.map((log, idx) => (
+                          <tr key={idx}>
+                            <td>{log.user}</td>
+                            <td>{log.time}</td>
+                            <td>{log.reason}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mb-4">
+                    <h6>Activity Logs</h6>
+                    <table className="table glass">
+                      <thead><tr><th>User</th><th>Page</th><th>Action</th><th>Time</th></tr></thead>
+                      <tbody>
+                        {activityLogs.map((log, idx) => (
+                          <tr key={idx}>
+                            <td>{log.user}</td>
+                            <td>{log.page}</td>
+                            <td>{log.action}</td>
+                            <td>{log.time}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : activePage === "Todo" ? (
+              <div>
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">📝 Todo</h2>
+
+              <div className="flex flex-col md:flex-row md:space-x-2 space-y-2 md:space-y-0">
+              <input type="text" placeholder="Task title" className="border p-2 rounded w-full mb-2" />
+              <input type="text" placeholder="Task description" className="border p-2 rounded w-full mb-2" />
+              <input type="date" className="border p-2 rounded w-full mb-2" />
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Add Task</button>
+              <span className="bg-green-200 text-green-800 px-2 py-1 rounded text-sm">Active</span>
+
+              <select
+                className="border rounded p-2"
+                value={newTask.priority}
+                onChange={e => setNewTask({ ...newTask, priority: e.target.value })}
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                Task
+              </button>
+              <span className="bg-green-200 text-green-800 px-2 py-1 rounded text-sm">
+            Active
+            </span>
+              )){'}'}
+              </div>
+              <table className="table glass">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Assigned To</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTasks.map((task, idx) => (
+                  <tr key={idx}>
+                    <td>{task.title}</td>
+                    <td>{task.assignedTo || "Unassigned"}</td>
+                    <td>{task.due}</td>
+                    <td>{task.status}</td>
+                    <td>{task.priority}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </>
-      )}
-    </div>
-  );
+        </div>
+              ) : (
+                  <h2 className="text-xl font-bold">🚧 Coming soon: {activePage}</h2>
+        )
+      }</div>
+      </div>
+    </>
+    )
 }
+)
+</div>
+)}
+
+
+
