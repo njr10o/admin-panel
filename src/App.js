@@ -301,7 +301,7 @@ export default function AdminPanel() {
                 </>
               ) : activePage === 'reports' ? (
                 <>
-                  <h2 className="text-xl font-bold mb-4">📑 Reports</h2>
+                  <h2 className="text-xl font-bold mb-4">📑 Reports </h2>
                   <div className="row g-4 mb-4">
                     <div className="col-md-4"><div className="card glass p-3"><h6>Bar Chart - Sales by Day</h6><canvas ref={barChartRef}></canvas></div></div>
                     <div className="col-md-4"><div className="card glass p-3"><h6>Line Chart - User Signups</h6><canvas ref={lineChartRef}></canvas></div></div>
